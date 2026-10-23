@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="de"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#073b78"><title>ALFA Metals – Material-Memory</title>
+<style>
+:root{--navy:#073b78;--blue:#1768a8;--ink:#092c55}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#f8fbff,#e7f2fb);font-family:Arial,Helvetica,sans-serif;color:var(--ink);min-height:100vh}
+header{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;background:#fff;border-bottom:3px solid #cfe4f6;padding:14px}
+.brand{width:90px;flex-shrink:0}.brand img{width:100%;display:block;border-radius:5px}
+.head{text-align:center;flex:1}.head h1{margin:0;color:var(--navy);font-size:clamp(21px,4vw,34px)}.subtitle{margin-top:5px;color:var(--blue);font-size:clamp(14px,2.6vw,20px)}
+main{max-width:1000px;margin:auto;padding:16px}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:4px 0 14px}.status{font-weight:bold}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:10px 14px;background:var(--navy);color:white;font-weight:bold}button:focus-visible{outline:3px solid #efbd49;outline-offset:3px}
+#board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.card{padding:0;border:0;background:transparent;perspective:900px;min-width:0;aspect-ratio:1.45/1}
+.inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .32s}.card.flipped .inner,.card.matched .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;overflow:hidden;border:2px solid #d0e2f1;border-radius:12px;backface-visibility:hidden;box-shadow:0 3px 9px #0a376622;background:white}.back{background:#073b78}.face img{width:100%;height:100%;display:block;object-fit:cover}.front{transform:rotateY(180deg)}
+.card.matched .face{border-color:#4cae82}.card.matched{cursor:default}.note{text-align:center;color:#42617f;font-size:12px;margin:15px 0 3px}
+#win{display:none;text-align:center;padding:18px;background:white;border:2px solid #cfe4f6;border-radius:14px;margin-top:14px}
+@media(max-width:480px){main{padding:10px}#board{gap:7px}.card{aspect-ratio:1.08/1}.face{border-radius:8px}}
+</style></head><body>
+<header><div class="brand"><img src="assets/alfa-rueckseite.jpg" alt="ALFA Metals Kartenmotiv"></div><div class="head"><h1>ALFA Metals – Material-Memory</h1><div class="subtitle">Finde die passenden Materialpaare</div></div></header>
+<main><div class="toolbar"><div class="status" aria-live="polite">Züge: <span id="moves">0</span> · Paare: <span id="pairs">0</span>/8</div><button id="restart">Neu mischen ↻</button></div>
+<section id="board" aria-label="Memory-Karten"></section><div id="win"><h2>Super gemacht! 🎉</h2><p id="result"></p><button id="again">Noch einmal spielen</button></div>
+<p class="note">ALFA Metals · Material-Memory · Viel Spaß beim Warten!</p></main>
+<script>
+const materials=[
+{name:"Kupfer",image:"assets/kupfer.jpg"},
+{name:"Messing",image:"assets/messing.jpg"},
+{name:"Aluminium",image:"assets/aluminium.jpg"},
+{name:"Kupferspäne",image:"assets/kupferspaene.jpg"},
+{name:"Messingspäne",image:"assets/messingspaene.jpg"},
+{name:"Eisenschrott",image:"assets/eisenschrott.jpg"},
+{name:"Kupferkabel",image:"assets/kupferkabel.jpg"},
+{name:"Aluminiumprofile",image:"assets/aluminiumprofile.jpg"}];
+let deck=[],first=null,lock=false,moves=0,pairs=0;const board=document.querySelector('#board');
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function start(){deck=shuffle(materials.flatMap((m,i)=>[{...m,id:i+'a'},{...m,id:i+'b'}]));first=null;lock=false;moves=0;pairs=0;document.querySelector('#moves').textContent='0';document.querySelector('#pairs').textContent='0';document.querySelector('#win').style.display='none';board.innerHTML='';
+deck.forEach(m=>{const card=document.createElement('button');card.type='button';card.className='card';card.setAttribute('aria-label','Verdeckte Karte');card.innerHTML=`<div class="inner"><div class="face back"><img src="assets/alfa-rueckseite.jpg" alt="ALFA Metals"></div><div class="face front"><img src="${m.image}" alt="${m.name}"></div></div>`;card.addEventListener('click',()=>flip(card,m));board.appendChild(card);});}
+function flip(card,m){if(lock||card.classList.contains('flipped')||card.classList.contains('matched'))return;card.classList.add('flipped');card.setAttribute('aria-label',m.name);if(!first){first={card,m};return;}moves++;document.querySelector('#moves').textContent=moves;
+if(first.m.name===m.name){first.card.classList.add('matched');card.classList.add('matched');first.card.disabled=true;card.disabled=true;pairs++;document.querySelector('#pairs').textContent=pairs;first=null;if(pairs===8){document.querySelector('#result').textContent=`Du hast alle 8 Paare in ${moves} Zügen gefunden.`;document.querySelector('#win').style.display='block';}}
+else{lock=true;const prev=first;first=null;setTimeout(()=>{prev.card.classList.remove('flipped');card.classList.remove('flipped');prev.card.setAttribute('aria-label','Verdeckte Karte');card.setAttribute('aria-label','Verdeckte Karte');lock=false;},850);}}
+document.querySelector('#restart').addEventListener('click',start);document.querySelector('#again').addEventListener('click',start);start();
+</script></body></html>
